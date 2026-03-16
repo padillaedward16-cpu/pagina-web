@@ -1608,8 +1608,53 @@
     }
 
     // ── FORM SUBMIT ──
-    function handleReserva(e) {
+    async function handleReserva(e) {
       e.preventDefault();
+
+      const form = e.target;
+
+      // Recolectar todos los datos del formulario
+      const inputs     = form.querySelectorAll('input, select, textarea');
+      const nombre     = inputs[0].value.trim();
+      const telefono   = inputs[1].value.trim();
+      const servicio   = inputs[2].value;
+      const barbero    = inputs[3].value || 'Sin preferencia';
+      const fecha      = inputs[4].value;
+      const notas      = inputs[5].value.trim();
+
+      // Horario seleccionado (el botón con clase .selected)
+      const slotBtn  = form.querySelector('.time-slot.selected');
+      const horario  = slotBtn ? slotBtn.textContent.trim() : 'Sin seleccionar';
+
+      const payload = {
+        nombre,
+        telefono,
+        servicio,
+        barbero,
+        fecha,
+        horario,
+        notas,
+        timestamp: new Date().toISOString()
+      };
+
+      // Deshabilitar el botón para evitar doble envío
+      const submitBtn = form.querySelector('.form-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+
+      try {
+        await fetch('https://devwebhookn8n.mardini-ia.com/webhook/blade-demo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        // Si falla el webhook, igual mostramos éxito al usuario
+        // (no queremos que el cliente vea un error por un problema interno)
+        console.error('Webhook error:', err);
+      }
+
+      // Mostrar pantalla de éxito
       document.getElementById('booking-form').style.display = 'none';
       document.getElementById('booking-success').style.display = 'block';
     }
