@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLADE — Barbería</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── PALETTE LOCK ── */
+    :root {
+      --color-bg:       #0D0D0F;
+      --color-surface:  #16161A;
+      --color-surface2: #1E1E24;
+      --color-primary:  #E8C547;
+      --color-accent:   #4A9EBF;
+      --color-white:    #F2EFE9;
+      --color-muted:    #5C5C6B;
+      --color-border:   #242430;
+
+      --font-display: 'Playfair Display', serif;
+      --font-body:    'Space Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── PAGES ── */
+    .page { display: none; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.4rem 5%;
+      background: rgba(13,13,15,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--color-border);
+      transition: border-color 0.3s;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: var(--color-white);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--color-primary); }
+
+    .nav-links {
+      display: flex;
+      gap: 0.5rem;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links button {
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links button::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 1rem; right: 1rem;
+      height: 1px;
+      background: var(--color-primary);
+      transform: scaleX(0);
+      transition: transform 0.25s;
+    }
+
+    .nav-links button:hover { color: var(--color-white); }
+    .nav-links button:hover::after,
+    .nav-links button.active::after { transform: scaleX(1); }
+    .nav-links button.active { color: var(--color-white); }
+
+    .nav-cta {
+      background: var(--color-primary) !important;
+      color: var(--color-bg) !important;
+      padding: 0.6rem 1.4rem !important;
+      letter-spacing: 0.15em !important;
+      transition: background 0.2s, transform 0.2s !important;
+    }
+
+    .nav-cta::after { display: none !important; }
+    .nav-cta:hover { background: #d4b040 !important; transform: translateY(-1px) !important; }
+
+    /* hamburger */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0.4rem;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 22px; height: 1px;
+      background: var(--color-white);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ════════════════════════════════════
+       PAGE 1 — PRINCIPAL
+    ════════════════════════════════════ */
+
+    /* HERO */
+    #p1-hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 0 5%;
+      padding-top: 5rem;
+      gap: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #p1-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 55% 65% at 75% 50%, rgba(232,197,71,0.05) 0%, transparent 65%),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 70px,
+          rgba(255,255,255,0.012) 70px,
+          rgba(255,255,255,0.012) 71px
+        );
+      pointer-events: none;
+    }
+
+    .hero-left { position: relative; z-index: 1; }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.2s forwards;
+    }
+
+    .hero-eyebrow-line {
+      display: inline-block;
+      width: 28px; height: 1px;
+      background: var(--color-primary);
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 7.5vw, 7.5rem);
+      font-weight: 900;
+      line-height: 0.95;
+      color: var(--color-white);
+      opacity: 0;
+      animation: fadeUp 0.7s 0.35s forwards;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--color-primary);
+      display: block;
+    }
+
+    .hero-sub {
+      margin-top: 2.2rem;
+      font-size: 0.78rem;
+      line-height: 1.9;
+      color: var(--color-muted);
+      max-width: 420px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.5s forwards;
+    }
+
+    .hero-actions {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.65s forwards;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: var(--color-bg);
+      padding: 0.9rem 2.2rem;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    .btn-primary:hover { background: #d4b040; transform: translateY(-2px); }
+
+    .btn-ghost {
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--color-muted);
+      cursor: pointer;
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-ghost:hover { color: var(--color-white); border-color: var(--color-white); }
+
+    /* Hero right */
+    .hero-right {
+      position: relative;
+      height: 75vh;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      opacity: 0;
+      animation: fadeIn 1s 0.4s forwards;
+    }
+
+    .hero-bg-letter {
+      font-family: var(--font-display);
+      font-size: clamp(14rem, 25vw, 22rem);
+      font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(232,197,71,0.08);
+      line-height: 1;
+      user-select: none;
+      position: absolute;
+      right: -3%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .hero-stats {
+      position: absolute;
+      bottom: 8%;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--color-border);
+    }
+
+    .hero-stat {
+      background: var(--color-surface);
+      padding: 1.2rem 1.8rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+    }
+
+    .hero-stat-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .hero-stat-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+
+    /* SERVICES */
+    #p1-services {
+      padding: 7rem 5%;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .services-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 4rem;
+    }
+
+    .section-eyebrow {
+      font-size: 0.6rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 20px; height: 1px;
+      background: var(--color-primary);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--color-white);
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--color-border);
+    }
+
+    .service-card {
+      background: var(--color-bg);
+      padding: 2.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--color-primary);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+
+    .service-card:hover { background: var(--color-surface); }
+    .service-card:hover::before { transform: scaleX(1); }
+
+    .service-num {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--color-border);
+      line-height: 1;
+      margin-bottom: 1.5rem;
+      transition: color 0.3s;
+    }
+
+    .service-card:hover .service-num { color: var(--color-surface2); }
+
+    .service-name {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--color-white);
+      margin-bottom: 0.7rem;
+    }
+
+    .service-desc {
+      font-size: 0.72rem;
+      color: var(--color-muted);
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .service-price {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .service-price small {
+      font-family: var(--font-body);
+      font-size: 0.62rem;
+      color: var(--color-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+      padding: 1.2rem 0;
+      overflow: hidden;
+      background: var(--color-surface);
+    }
+
+    .marquee-track {
+      display: flex;
+      gap: 3rem;
+      white-space: nowrap;
+      animation: marquee 18s linear infinite;
+      width: max-content;
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    .marquee-item {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-style: italic;
+      letter-spacing: 0.12em;
+      color: var(--color-muted);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .marquee-dot {
+      display: inline-block;
+      width: 4px; height: 4px;
+      background: var(--color-primary);
+      border-radius: 50%;
+    }
+
+    /* ABOUT */
+    #p1-about {
+      padding: 7rem 5%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8rem;
+      align-items: center;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .about-label-vertical {
+      writing-mode: vertical-rl;
+      font-size: 0.55rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      transform: rotate(180deg);
+      margin-right: 2rem;
+    }
+
+    .about-left {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .about-visual {
+      flex: 1;
+      position: relative;
+    }
+
+    .about-big-num {
+      font-family: var(--font-display);
+      font-size: clamp(6rem, 12vw, 11rem);
+      font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--color-border);
+      line-height: 1;
+    }
+
+    .about-tag {
+      margin-top: 1.5rem;
+      display: inline-block;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      padding: 1rem 1.5rem;
+    }
+
+    .about-tag-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .about-tag-text {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+
+    .about-right {}
+
+    .about-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--color-white);
+      margin-bottom: 1.5rem;
+    }
+
+    .about-title em {
+      font-style: italic;
+      color: var(--color-primary);
+    }
+
+    .about-text {
+      font-size: 0.78rem;
+      color: var(--color-muted);
+      line-height: 1.9;
+      margin-bottom: 1rem;
+    }
+
+    .about-values {
+      margin-top: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--color-border);
+    }
+
+    .about-value {
+      background: var(--color-surface);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .about-value-icon {
+      font-size: 0.8rem;
+      color: var(--color-primary);
+      width: 20px;
+      text-align: center;
+    }
+
+    .about-value-text {
+      font-size: 0.72rem;
+      color: var(--color-white);
+      letter-spacing: 0.05em;
+    }
+
+    /* ════════════════════════════════════
+       PAGE 2 — GALERÍA
+    ════════════════════════════════════ */
+
+    #p2-header {
+      padding: 10rem 5% 5rem;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .gallery-filter {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: none;
+      border: 1px solid var(--color-border);
+      font-family: var(--font-body);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-bg);
+    }
+
+    /* Masonry grid */
+    #p2-gallery {
+      padding: 4rem 5%;
+    }
+
+    .masonry {
+      columns: 3;
+      column-gap: 8px;
+    }
+
+    .masonry-item {
+      break-inside: avoid;
+      margin-bottom: 8px;
+      position: relative;
+      overflow: hidden;
+      background: var(--color-surface);
+      cursor: pointer;
+    }
+
+    .masonry-item:nth-child(3n+1) { margin-top: 2rem; }
+    .masonry-item:nth-child(5n)   { margin-top: -1.5rem; }
+
+    .masonry-img {
+      width: 100%;
+      display: block;
+      transition: transform 0.6s ease;
+    }
+
+    .masonry-item:hover .masonry-img { transform: scale(1.05); }
+
+    .masonry-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(13,13,15,0.85) 0%, transparent 55%);
+      opacity: 0;
+      transition: opacity 0.35s;
+      display: flex;
+      align-items: flex-end;
+      padding: 1.5rem;
+    }
+
+    .masonry-item:hover .masonry-overlay { opacity: 1; }
+
+    .masonry-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .masonry-name {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-white);
+    }
+
+    .masonry-tag {
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+    }
+
+    /* placeholder cards */
+    .cut-placeholder {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+    }
+
+    .cut-placeholder-icon {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-style: italic;
+      color: var(--color-primary);
+      opacity: 0.3;
+    }
+
+    .cut-placeholder-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+
+    /* ════════════════════════════════════
+       PAGE 3 — RESERVAS
+    ════════════════════════════════════ */
+
+    #p3-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    .reservas-left {
+      padding: 8rem 5% 5rem;
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reservas-bg-letter {
+      position: absolute;
+      top: 50%;
+      left: -5%;
+      transform: translateY(-50%);
+      font-family: var(--font-display);
+      font-size: 30vw;
+      font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(232,197,71,0.04);
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .reservas-info {
+      position: relative;
+      z-index: 1;
+    }
+
+    .reservas-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 5rem);
+      font-weight: 900;
+      line-height: 0.95;
+      color: var(--color-white);
+      margin-bottom: 1.5rem;
+    }
+
+    .reservas-title em {
+      font-style: italic;
+      color: var(--color-primary);
+      display: block;
+    }
+
+    .reservas-sub {
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      line-height: 1.9;
+      max-width: 380px;
+      margin-bottom: 3rem;
+    }
+
+    .reservas-details {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--color-border);
+      max-width: 340px;
+    }
+
+    .reservas-detail {
+      background: var(--color-surface);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .reservas-detail-icon {
+      font-size: 0.8rem;
+      color: var(--color-primary);
+      width: 16px;
+      text-align: center;
+    }
+
+    .reservas-detail-content {}
+
+    .reservas-detail-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+
+    .reservas-detail-val {
+      font-size: 0.75rem;
+      color: var(--color-white);
+    }
+
+    /* Form side */
+    .reservas-right {
+      padding: 8rem 5% 5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--color-white);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-sub {
+      font-size: 0.68rem;
+      color: var(--color-muted);
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .form { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .form-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-white);
+      padding: 0.85rem 1rem;
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.25s, background 0.25s;
+      -webkit-appearance: none;
+      width: 100%;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      border-color: var(--color-primary);
+      background: var(--color-surface2);
+    }
+
+    .form-input::placeholder { color: var(--color-muted); }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-select option { background: var(--color-surface); }
+
+    /* Time slots */
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .time-slot {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      font-family: var(--font-body);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--color-muted);
+      padding: 0.6rem 0.4rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .time-slot:hover {
+      border-color: var(--color-primary);
+      color: var(--color-white);
+    }
+
+    .time-slot.selected {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-bg);
+    }
+
+    .time-slot.unavailable {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .form-submit {
+      background: var(--color-primary);
+      color: var(--color-bg);
+      border: none;
+      padding: 1.1rem 2rem;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .form-submit:hover { background: #d4b040; transform: translateY(-2px); }
+
+    /* Success message */
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+    }
+
+    .form-success-icon {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--color-primary);
+      margin-bottom: 1rem;
+    }
+
+    .form-success-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-white);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-success-text {
+      font-size: 0.72rem;
+      color: var(--color-muted);
+      line-height: 1.8;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--color-border);
+      padding: 2.5rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--color-surface);
+    }
+
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: var(--color-white);
+    }
+
+    .footer-logo span { color: var(--color-primary); }
+
+    .footer-nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-nav button {
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .footer-nav button:hover { color: var(--color-white); }
+
+    .footer-copy {
+      font-size: 0.62rem;
+      color: var(--color-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      #p1-hero { grid-template-columns: 1fr; padding-top: 7rem; }
+      .hero-right { height: 35vh; }
+      .hero-bg-letter { font-size: 12rem; }
+      .services-grid { grid-template-columns: 1fr; }
+      .services-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+      #p1-about { grid-template-columns: 1fr; gap: 3rem; }
+      .about-left { display: none; }
+      .masonry { columns: 2; }
+      #p2-header { flex-direction: column; align-items: flex-start; gap: 2rem; padding-top: 8rem; }
+      #p3-wrap { grid-template-columns: 1fr; }
+      .reservas-left { padding: 7rem 5% 3rem; }
+      .reservas-right { padding: 3rem 5% 5rem; }
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+      .footer-nav { flex-wrap: wrap; justify-content: center; }
+      .time-slots { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .masonry { columns: 1; }
+      .form-row { grid-template-columns: 1fr; }
+      .time-slots { grid-template-columns: repeat(2, 1fr); }
+      .hero-title { font-size: 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo" onclick="showPage('p1')">BL<span>A</span>DE</div>
+    <ul class="nav-links">
+      <li><button onclick="showPage('p1')" id="nav-p1" class="active">Inicio</button></li>
+      <li><button onclick="showPage('p2')" id="nav-p2">Galería</button></li>
+      <li><button onclick="showPage('p3')" id="nav-p3" class="nav-cta">Reservar turno</button></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMobile()" id="hamburger">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE NAV -->
+  <div id="mobile-menu" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(13,13,15,0.98);z-index:190;flex-direction:column;align-items:center;justify-content:center;gap:2rem;">
+    <button onclick="showPage('p1');toggleMobile()" style="background:none;border:none;font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#F2EFE9;cursor:pointer;">Inicio</button>
+    <button onclick="showPage('p2');toggleMobile()" style="background:none;border:none;font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#F2EFE9;cursor:pointer;">Galería</button>
+    <button onclick="showPage('p3');toggleMobile()" style="background:none;border:none;font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#E8C547;cursor:pointer;">Reservar turno</button>
+  </div>
+
+  <!-- ════ PAGE 1: PRINCIPAL ════ -->
+  <div class="page active" id="page-p1">
+
+    <!-- HERO -->
+    <section id="p1-hero">
+      <div class="hero-left">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-line"></span>
+          Barbería Premium · Desde 2019
+        </div>
+        <h1 class="hero-title">
+          El corte<br>
+          <em>perfecto</em><br>
+          no se<br>improvisa.
+        </h1>
+        <p class="hero-sub">
+          Precisión, estilo y actitud. En BLADE cada detalle importa —
+          desde la línea hasta el acabado. Tu imagen habla antes que vos.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="showPage('p3')">Reservar turno</button>
+          <button class="btn-ghost" onclick="showPage('p2')">Ver galería</button>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-bg-letter">B</div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-num">+800</span>
+            <span class="hero-stat-label">Clientes</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">6</span>
+            <span class="hero-stat-label">Años de experiencia</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">100%</span>
+            <span class="hero-stat-label">Satisfacción</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="p1-about">
+      <div class="about-left">
+        <div class="about-label-vertical reveal">Nuestra historia</div>
+        <div class="about-visual reveal">
+          <div class="about-big-num">6</div>
+          <div style="font-family:var(--font-display);font-size:1rem;color:var(--color-muted);font-style:italic;margin-top:-1rem">años de oficio</div>
+          <div class="about-tag" style="margin-top:2rem">
+            <div class="about-tag-num">+800</div>
+            <div class="about-tag-text">Clientes satisfechos</div>
+          </div>
+        </div>
+      </div>
+      <div class="about-right">
+        <div class="section-eyebrow reveal">Quiénes somos</div>
+        <h2 class="about-title reveal">
+          El corte es un oficio.<br>
+          <em>BLADE es la firma.</em>
+        </h2>
+        <p class="about-text reveal">
+          Abrimos en 2019 con una sola convicción: que un buen corte de pelo no es un servicio, es una experiencia. Desde entonces, cada cliente que entra a BLADE sale sintiéndose diferente.
+        </p>
+        <p class="about-text reveal">
+          No hacemos descuentos. No tenemos combos confusos. Tenemos barberos que dominan su oficio y el tiempo suficiente para hacerlo bien.
+        </p>
+        <div class="about-values reveal">
+          <div class="about-value">
+            <span class="about-value-icon">✦</span>
+            <span class="about-value-text">Precisión en cada detalle</span>
+          </div>
+          <div class="about-value">
+            <span class="about-value-icon">✦</span>
+            <span class="about-value-text">Sin apuros, sin atajos</span>
+          </div>
+          <div class="about-value">
+            <span class="about-value-icon">✦</span>
+            <span class="about-value-text">Productos premium siempre</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <div class="marquee-wrap">
+      <div class="marquee-track">
+        <span class="marquee-item">Corte Clásico <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Fade & Design <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Barba Perfecta <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Afeitado Clásico <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Experiencia VIP <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Cejas <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Corte Clásico <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Fade & Design <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Barba Perfecta <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Afeitado Clásico <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Experiencia VIP <span class="marquee-dot"></span></span>
+        <span class="marquee-item">Cejas <span class="marquee-dot"></span></span>
+      </div>
+    </div>
+
+    <!-- SERVICES -->
+    <section id="p1-services">
+      <div class="services-header">
+        <div>
+          <div class="section-eyebrow reveal">Lo que hacemos</div>
+          <h2 class="section-title reveal">Servicios</h2>
+        </div>
+        <button class="btn-ghost reveal" onclick="showPage('p3')">Reservar ahora →</button>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card reveal">
+          <div class="service-num">01</div>
+          <div class="service-name">Corte Clásico</div>
+          <p class="service-desc">Tijera y máquina. Sin apuros. El corte que nunca pasa de moda, ejecutado con precisión milimétrica.</p>
+          <div class="service-price">$2.500 <small>ARS</small></div>
+        </div>
+        <div class="service-card reveal" style="transition-delay:0.1s">
+          <div class="service-num">02</div>
+          <div class="service-name">Corte + Barba</div>
+          <p class="service-desc">El combo completo. Perfilado, delineado y acabado. Salís transformado.</p>
+          <div class="service-price">$3.800 <small>ARS</small></div>
+        </div>
+        <div class="service-card reveal" style="transition-delay:0.2s">
+          <div class="service-num">03</div>
+          <div class="service-name">Fade & Design</div>
+          <p class="service-desc">Degradados perfectos con diseños personalizados. Para los que quieren diferenciarse.</p>
+          <div class="service-price">$3.200 <small>ARS</small></div>
+        </div>
+        <div class="service-card reveal" style="transition-delay:0.3s">
+          <div class="service-num">04</div>
+          <div class="service-name">Afeitado Clásico</div>
+          <p class="service-desc">Navaja, toalla caliente y crema premium. Un ritual que pocos conocen.</p>
+          <div class="service-price">$2.000 <small>ARS</small></div>
+        </div>
+        <div class="service-card reveal" style="transition-delay:0.4s">
+          <div class="service-num">05</div>
+          <div class="service-name">Cejas</div>
+          <p class="service-desc">Depilación y perfilado. Un detalle que hace toda la diferencia en tu look.</p>
+          <div class="service-price">$800 <small>ARS</small></div>
+        </div>
+        <div class="service-card reveal" style="transition-delay:0.5s">
+          <div class="service-num">06</div>
+          <div class="service-name">Experiencia VIP</div>
+          <p class="service-desc">Corte + barba + cejas + tratamiento. El paquete completo para ocasiones especiales.</p>
+          <div class="service-price">$5.500 <small>ARS</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-logo">BL<span>A</span>DE</div>
+      <div class="footer-nav">
+        <button onclick="showPage('p1')">Inicio</button>
+        <button onclick="showPage('p2')">Galería</button>
+        <button onclick="showPage('p3')">Reservas</button>
+      </div>
+      <div class="footer-copy">© 2025 BLADE Barbería · Buenos Aires</div>
+    </footer>
+
+  </div>
+
+  <!-- ════ PAGE 2: GALERÍA ════ -->
+  <div class="page" id="page-p2">
+
+    <div id="p2-header">
+      <div>
+        <div class="section-eyebrow reveal">Nuestro trabajo</div>
+        <h2 class="section-title reveal" style="font-size:clamp(2.5rem,5vw,5rem)">
+          Galería<br>
+          <span style="font-style:italic;color:var(--color-primary)">de cortes</span>
+        </h2>
+      </div>
+      <div class="gallery-filter reveal">
+        <button class="filter-btn active" onclick="filterGallery('all', this)">Todos</button>
+        <button class="filter-btn" onclick="filterGallery('fade', this)">Fade</button>
+        <button class="filter-btn" onclick="filterGallery('clasico', this)">Clásico</button>
+        <button class="filter-btn" onclick="filterGallery('barba', this)">Barba</button>
+        <button class="filter-btn" onclick="filterGallery('design', this)">Design</button>
+      </div>
+    </div>
+
+    <section id="p2-gallery">
+      <div class="masonry" id="masonry-grid">
+
+        <!-- Each card: data-cat for filter -->
+        <div class="masonry-item reveal" data-cat="fade">
+          <div class="cut-placeholder" style="height:320px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Fade Bajo</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Fade Bajo</div>
+              <div class="masonry-tag">Fade</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="clasico" style="transition-delay:0.05s">
+          <div class="cut-placeholder" style="height:240px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Corte Clásico</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Clásico Lateral</div>
+              <div class="masonry-tag">Clásico</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="barba" style="transition-delay:0.1s">
+          <div class="cut-placeholder" style="height:280px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Barba Perfilada</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Barba Perfilada</div>
+              <div class="masonry-tag">Barba</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="design" style="transition-delay:0.15s">
+          <div class="cut-placeholder" style="height:380px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Design Geométrico</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Design Geométrico</div>
+              <div class="masonry-tag">Design</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="fade" style="transition-delay:0.2s">
+          <div class="cut-placeholder" style="height:260px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Mid Fade</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Mid Fade</div>
+              <div class="masonry-tag">Fade</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="clasico" style="transition-delay:0.25s">
+          <div class="cut-placeholder" style="height:300px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Undercut</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Undercut</div>
+              <div class="masonry-tag">Clásico</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="barba" style="transition-delay:0.3s">
+          <div class="cut-placeholder" style="height:220px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Barba Larga</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Barba Larga</div>
+              <div class="masonry-tag">Barba</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="fade" style="transition-delay:0.35s">
+          <div class="cut-placeholder" style="height:340px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">High Fade</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">High Fade</div>
+              <div class="masonry-tag">Fade</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="masonry-item reveal" data-cat="design" style="transition-delay:0.4s">
+          <div class="cut-placeholder" style="height:290px;padding:2rem">
+            <div class="cut-placeholder-icon">✂</div>
+            <div class="cut-placeholder-label">Razor Design</div>
+          </div>
+          <div class="masonry-overlay">
+            <div class="masonry-info">
+              <div class="masonry-name">Razor Design</div>
+              <div class="masonry-tag">Design</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="text-align:center;margin-top:4rem;padding-bottom:4rem;">
+        <p style="font-size:0.68rem;color:var(--color-muted);letter-spacing:0.15em;margin-bottom:1.5rem">¿Te gustó lo que ves?</p>
+        <button class="btn-primary" onclick="showPage('p3')">Reservar mi turno</button>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-logo">BL<span>A</span>DE</div>
+      <div class="footer-nav">
+        <button onclick="showPage('p1')">Inicio</button>
+        <button onclick="showPage('p2')">Galería</button>
+        <button onclick="showPage('p3')">Reservas</button>
+      </div>
+      <div class="footer-copy">© 2025 BLADE Barbería · Buenos Aires</div>
+    </footer>
+
+  </div>
+
+  <!-- ════ PAGE 3: RESERVAS ════ -->
+  <div class="page" id="page-p3">
+
+    <div id="p3-wrap">
+
+      <div class="reservas-left">
+        <div class="reservas-bg-letter">R</div>
+        <div class="reservas-info">
+          <div class="section-eyebrow reveal">Agendá tu visita</div>
+          <h2 class="reservas-title reveal">
+            Reservá<br>
+            <em>tu turno</em>
+          </h2>
+          <p class="reservas-sub reveal">
+            Elegí tu servicio, día y horario. Te confirmamos por WhatsApp en menos de 10 minutos.
+          </p>
+          <div class="reservas-details reveal">
+            <div class="reservas-detail">
+              <span class="reservas-detail-icon">◎</span>
+              <div class="reservas-detail-content">
+                <div class="reservas-detail-label">Dirección</div>
+                <div class="reservas-detail-val">Av. Corrientes 1847, CABA</div>
+              </div>
+            </div>
+            <div class="reservas-detail">
+              <span class="reservas-detail-icon">◷</span>
+              <div class="reservas-detail-content">
+                <div class="reservas-detail-label">Horarios</div>
+                <div class="reservas-detail-val">Lun – Vie: 9:00 – 20:00 · Sáb: 9:00 – 18:00</div>
+              </div>
+            </div>
+            <div class="reservas-detail">
+              <span class="reservas-detail-icon">◈</span>
+              <div class="reservas-detail-content">
+                <div class="reservas-detail-label">WhatsApp</div>
+                <div class="reservas-detail-val">+54 9 11 3456-7890</div>
+              </div>
+            </div>
+            <div class="reservas-detail">
+              <span class="reservas-detail-icon">◉</span>
+              <div class="reservas-detail-content">
+                <div class="reservas-detail-label">Instagram</div>
+                <div class="reservas-detail-val">@blade.barberia</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reservas-right">
+        <div class="form-title reveal">Nuevo turno</div>
+        <div class="form-sub reveal">Completá el formulario y te confirmamos al instante.</div>
+
+        <div id="booking-form" class="reveal">
+          <form class="form" onsubmit="handleReserva(event)">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" placeholder="Tu nombre" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" class="form-input" placeholder="11 1234-5678" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Servicio</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Seleccioná un servicio</option>
+                <option>Corte Clásico — $2.500</option>
+                <option>Corte + Barba — $3.800</option>
+                <option>Fade & Design — $3.200</option>
+                <option>Afeitado Clásico — $2.000</option>
+                <option>Cejas — $800</option>
+                <option>Experiencia VIP — $5.500</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Barbero (opcional)</label>
+              <select class="form-select">
+                <option value="">Sin preferencia</option>
+                <option>Marcos</option>
+                <option>Diego</option>
+                <option>Nicolás</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Horario disponible</label>
+              <div class="time-slots">
+                <button type="button" class="time-slot" onclick="selectTime(this)">09:00</button>
+                <button type="button" class="time-slot unavailable">10:00</button>
+                <button type="button" class="time-slot" onclick="selectTime(this)">11:00</button>
+                <button type="button" class="time-slot unavailable">12:00</button>
+                <button type="button" class="time-slot" onclick="selectTime(this)">14:00</button>
+                <button type="button" class="time-slot" onclick="selectTime(this)">15:00</button>
+                <button type="button" class="time-slot unavailable">16:00</button>
+                <button type="button" class="time-slot" onclick="selectTime(this)">17:00</button>
+                <button type="button" class="time-slot" onclick="selectTime(this)">18:00</button>
+                <button type="button" class="time-slot" onclick="selectTime(this)">19:00</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Notas (opcional)</label>
+              <textarea class="form-textarea" placeholder="Ej: quiero fade alto con línea..."></textarea>
+            </div>
+
+            <button type="submit" class="form-submit">Confirmar reserva</button>
+
+          </form>
+        </div>
+
+        <div class="form-success" id="booking-success">
+          <div class="form-success-icon">✦</div>
+          <div class="form-success-title">Turno reservado.</div>
+          <div class="form-success-text">
+            Te confirmamos por WhatsApp en los próximos 10 minutos.<br>
+            Si necesitás cancelar, escribinos al menos 2 horas antes.
+          </div>
+          <button class="btn-primary" style="margin-top:2rem" onclick="resetForm()">Hacer otra reserva</button>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-logo">BL<span>A</span>DE</div>
+      <div class="footer-nav">
+        <button onclick="showPage('p1')">Inicio</button>
+        <button onclick="showPage('p2')">Galería</button>
+        <button onclick="showPage('p3')">Reservas</button>
+      </div>
+      <div class="footer-copy">© 2025 BLADE Barbería · Buenos Aires</div>
+    </footer>
+
+  </div>
+
+  <script>
+    // ── PAGE NAVIGATION ──
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + id).classList.add('active');
+
+      document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+      const nb = document.getElementById('nav-' + id);
+      if (nb) nb.classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // trigger reveals on new page
+      setTimeout(() => initReveals(), 100);
+    }
+
+    // ── MOBILE MENU ──
+    let mobileOpen = false;
+    function toggleMobile() {
+      mobileOpen = !mobileOpen;
+      const menu = document.getElementById('mobile-menu');
+      menu.style.display = mobileOpen ? 'flex' : 'none';
+    }
+
+    // ── SCROLL REVEAL ──
+    function initReveals() {
+      const reveals = document.querySelectorAll('.page.active .reveal:not(.visible)');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1 });
+      reveals.forEach(el => observer.observe(el));
+    }
+
+    // Init on load
+    initReveals();
+
+    // ── GALLERY FILTER ──
+    function filterGallery(cat, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.masonry-item').forEach(item => {
+        if (cat === 'all' || item.dataset.cat === cat) {
+          item.style.display = 'block';
+          item.style.opacity = '0';
+          setTimeout(() => item.style.opacity = '1', 50);
+          item.style.transition = 'opacity 0.3s';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // ── TIME SLOT ──
+    function selectTime(btn) {
+      document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    // ── FORM SUBMIT ──
+    function handleReserva(e) {
+      e.preventDefault();
+      document.getElementById('booking-form').style.display = 'none';
+      document.getElementById('booking-success').style.display = 'block';
+    }
+
+    function resetForm() {
+      document.getElementById('booking-form').style.display = 'block';
+      document.getElementById('booking-success').style.display = 'none';
+      document.getElementById('booking-form').querySelector('form').reset();
+      document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    }
+  </script>
+
+</body>
+</html>
